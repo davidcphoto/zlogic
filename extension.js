@@ -33,7 +33,9 @@ function activate(context) {
 		const programaLimpo = removeSeqnum(programaCompleto);
 		// const ProcedureDivision = ObterProcedureDivision(programaLimpo);
 
-		TrataProcedureDivision(programaLimpo);
+		const Lista = TrataProcedureDivision(programaLimpo);
+
+		const UML = formataUBL(Lista);
 
 	});
 
@@ -41,7 +43,7 @@ function activate(context) {
 }
 
 // This method is called when your extension is deactivated
-function deactivate() {}
+function deactivate() { }
 
 module.exports = {
 	activate,
@@ -53,7 +55,7 @@ function removeSeqnum(fullText) {
 
 	let fullTextArray = fullText.split(/\r?\n|\r|\n/g);
 
-	let resultado=[];
+	let resultado = [];
 
 	for (let i = 0; i < fullTextArray.length; ++i) {
 
@@ -62,7 +64,7 @@ function removeSeqnum(fullText) {
 
 		// 	if (fullTextArray[i].substring(6, 7) != '*' && fullTextArray[i].substring(7, 72).trim().length>0) {
 
-				resultado.push(fullTextArray[i].substring(6, 72));
+		resultado.push(fullTextArray[i].substring(6, 72));
 
 		// 	}
 		// }
@@ -91,37 +93,77 @@ function TrataProcedureDivision(Programa) {
 
 	let Procedures = [];
 	let EstaProcedureDivision = false;
+	let Filhos = [];
 
 	for (let i = 0; i < Programa.length; i++) {
 
-		if (Programa[i].indexOf("PROCEDURE")>0 && Programa[i].indexOf("DIVISION")>0) {
+		if (Programa[i].indexOf("PROCEDURE") > 0 && Programa[i].indexOf("DIVISION") > 0) {
 			EstaProcedureDivision = true;
-		}
-		if (EstaProcedureDivision) {
+		} else {
+			if (EstaProcedureDivision) {
 
-			const element = Programa[i];
+				const element = Programa[i];
 
-			if (element.substring(0, 1) != '*' && element.substring(1, 2) != '') {
-				Procedures.push(new Procedure(element, i));
+				if (element.length > 1) {
+					if (element.substring(0, 1) != '*' && element.substring(1, 2) != ' ') {
+
+						if (Filhos.length > 0) {
+							Procedures[Procedures.length-1].AdicionarFilhos(Filhos);
+							Filhos = [];
+						}
+						Procedures.push(new Procedure(element, i));
+
+					} else {
+						if (element.indexOf('PERFORM') > 0) {
+							const elementSplit = element.split('PERFORM');
+							Filhos.push(elementSplit[1]);
+						}
+					}
+				}
 			}
 		}
-
 	}
 
-	console.log('Procedures: ');
-	console.log(Procedures);
+	// for (let i = 0; i < Procedures.length; i++) {
+	// 	const element = Procedures[i];
 
+	// 	for (let j = 0; j < Procedures.length; j++) {
+	// 		const element2 = Procedures[j];
+	// 		if (element.Nome)
+
+	// 	}
+
+	// }
+
+	return Procedures;
 }
 
 
 
 class Procedure {
 
-	constructor(Nome=String, Linha=0) {
+	constructor(Nome = String, Linha = 0) {
 
 		this.Nome = Nome;
 		this.Linha = Linha;
+		this.Filhos = [];
+		this.Pais = [];
 
 	}
+	/**
+	 *
+	 */
+	AdicionarFilhos(filhos = []) {
+		this.Filhos = filhos;
+	}
+
+	AdicionarPais(pais = []) {
+		this.Pais = pais;
+	}
+
+}
+
+function formataUBL(Lista = []) {
+
 
 }
