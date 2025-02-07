@@ -94,6 +94,8 @@ function TrataProcedureDivision(Programa) {
 	let Procedures = [];
 	let EstaProcedureDivision = false;
 	let Filhos = [];
+	let Paragrafo = '';
+	const fimdelinha = /\r?\n|\r|\n/g;
 
 	for (let i = 0; i < Programa.length; i++) {
 
@@ -108,15 +110,19 @@ function TrataProcedureDivision(Programa) {
 					if (element.substring(0, 1) != '*' && element.substring(1, 2) != ' ') {
 
 						if (Filhos.length > 0) {
-							Procedures[Procedures.length-1].AdicionarFilhos(Filhos);
+							Procedures[Procedures.length - 1].AdicionarFilhos(Filhos);
+							Procedures[Procedures.length-1].AdicionarParagrafo(Paragrafo);
 							Filhos = [];
 						}
-						Procedures.push(new Procedure(element, i));
+						Procedures.push(new Procedure(element.slice(1, -1), i));
+						Paragrafo = '';
 
 					} else {
+						Paragrafo += element+fimdelinha;
 						if (element.indexOf('PERFORM') > 0) {
-							const elementSplit = element.split('PERFORM');
-							Filhos.push(elementSplit[1]);
+							const elementSplit = element.split(/[\s,]+/);
+
+							Filhos.push(elementSplit[2]);
 						}
 					}
 				}
@@ -124,16 +130,26 @@ function TrataProcedureDivision(Programa) {
 		}
 	}
 
-	// for (let i = 0; i < Procedures.length; i++) {
-	// 	const element = Procedures[i];
+	// Formatar os pais
 
-	// 	for (let j = 0; j < Procedures.length; j++) {
-	// 		const element2 = Procedures[j];
-	// 		if (element.Nome)
+	for (let i = 0; i < Procedures.length; i++) {
+		// const elemento = Procedures[i].Nome;
+		let Pais = [];
 
-	// 	}
+		for (let j = 0; j < Procedures.length; j++) {
+			const element = Procedures[j];
 
-	// }
+			if (element.Filhos.includes(Procedures[i].Nome, 0)) {
+				Pais.push(element.Nome);
+			}
+
+		}
+		if (Pais.length>0){
+		Procedures[i].AdicionarPais(Pais);
+		} else {
+			Procedures[i].DefinirNivel(0);
+		}
+	}
 
 	return Procedures;
 }
@@ -148,11 +164,17 @@ class Procedure {
 		this.Linha = Linha;
 		this.Filhos = [];
 		this.Pais = [];
+		this.Nivel = -1;
+		this.Paragrafo = '';
 
 	}
 	/**
 	 *
 	 */
+	DefinirNivel(nivel) {
+		this.Nivel = nivel;
+	}
+
 	AdicionarFilhos(filhos = []) {
 		this.Filhos = filhos;
 	}
@@ -161,6 +183,9 @@ class Procedure {
 		this.Pais = pais;
 	}
 
+	AdicionarParagrafo(paragrafo = '') {
+		this.Paragrafo = paragrafo;
+	}
 }
 
 function formataUBL(Lista = []) {
