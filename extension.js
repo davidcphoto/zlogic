@@ -39,7 +39,7 @@ function activate(context) {
 		const html = formataUBL(ListaOrdenada);
 
 		let painel;
-		painel = vscode.window.createWebviewPanel('zLogic', 'zLogic', 1, {
+		painel = vscode.window.createWebviewPanel('zLogic', 'zLogic', 2, {
 			enableScripts: true,
 			retainContextWhenHidden: true,
 			enableFindWidget: true,
@@ -54,7 +54,17 @@ function activate(context) {
 
 	});
 
+	let disposable2 = vscode.commands.registerCommand('zlogic.toWhere', function () {
+
+	});
+
+	let disposable3 = vscode.commands.registerCommand('zlogic.fromWhere', function () {
+
+	});
+
 	context.subscriptions.push(disposable);
+	context.subscriptions.push(disposable2);
+	context.subscriptions.push(disposable3);
 }
 
 // This method is called when your extension is deactivated
@@ -181,6 +191,15 @@ function TrataProcedureDivision(Programa) {
 					for (let k = 0; k < Procedures.length; k++) {
 						if (Procedures[i].Filhos[j] == Procedures[k].Nome) {
 							Procedures[k].Nivel = nivelTratar + 1;
+							// let caminhoTemp = [];
+							// caminhoTemp.push(Procedures[i].Nome);
+							Procedures[k].Caminhos.push(Procedures[i].Nome);
+							for (let y = 0; y < Procedures[i].Caminhos.length; y++) {
+								// caminhoTemp=caminhoTemp.concat(Procedures[i].Caminhos[y]);
+								Procedures[k].Caminhos=Procedures[k].Caminhos.concat(Procedures[i].Caminhos[y]);
+							}
+							// Procedures[k].Caminhos.push(caminhoTemp);
+							Procedures[k].Caminhos = uniq(Procedures[k].Caminhos);
 
 						}
 
@@ -197,11 +216,14 @@ function TrataProcedureDivision(Programa) {
 	}
 
 
-
 	return Procedures;
 }
 
-
+function uniq(a) {
+    return a.sort().filter(function(item, pos, ary) {
+        return !pos || item != ary[pos - 1];
+    });
+}
 
 class Procedure {
 
@@ -221,6 +243,7 @@ class Procedure {
 		this.PontoOutY = 0;
 		this.PontoInX = 0;
 		this.PontoInY = 0;
+		this.Caminhos = [];
 	}
 	/**
 	 *
@@ -322,7 +345,7 @@ function formataUBL(Lista = []) {
 
 			Lista[i].InserirCaixa(CaixaTop, CaixaLeft, CaixaWidth, CaixaHeight);
 
-			Listahtml += `<div  id="${Lista[i].Nome}" class="procedure" style="left:${CaixaLeft}px; top:${CaixaTop}px; width:${CaixaWidth}px; height:${CaixaHeight}px"><p>${Lista[i].Nome}</p><span class="tooltiptext">${Lista[i].Paragrafo}</span></div>`;
+			Listahtml += `<div id="${Lista[i].Nome}" class="procedure" onclick="Seleciona('${Lista[i].Nome},${Lista[i].Caminhos}')" style="left:${CaixaLeft}px; top:${CaixaTop}px; width:${CaixaWidth}px; height:${CaixaHeight}px"><p>${Lista[i].Nome}</p><span class="tooltiptext">${Lista[i].Paragrafo}</span></div>`;
 
 		}
 	}
@@ -381,11 +404,21 @@ function formataUBL(Lista = []) {
 				border: var(--vscode-editor-inactiveSelectionBackground);
 				border-style: solid;
            		border-radius: 10px;
+		 		opacity: 1;
 			}
 
 			.procedure:hover {
+				background-color: var(--vscode-editorInfo-foreground);
+		 		opacity: 1;
+		 	}
+
+		  	.procedureactivo {
 				background-color: var(--vscode-editor-inactiveSelectionBackground);
-		  }
+		  	}
+
+		  	.procedureopacity, .linhaopacity {
+		 		opacity: 0.1;
+		  	}
 			.procedure p {
 				position: static;
     			top: 50%;
@@ -433,9 +466,128 @@ function formataUBL(Lista = []) {
 			}
 
 		</style>
+		<script>
+		    let caixaClicada = '';
+
+			function DesSeleciona(ListaIdentidade) {
+
+				console.log('DesSeleciona');
+			}
+
+			function Seleciona(ListaIdentidade) {
+
+				const identidade = ListaIdentidade.split(',');
+				const Quantidade = document.getElementsByClassName("procedureactivo").length;
+				    console.log('Quantidade ' + Quantidade);
+
+				removetodos();
+
+				 if (Quantidade==0) {
+
+				 	// seleciona a primeira vez e activa
+
+				 	activa(identidade);
+
+				} else {
+
+					const Quantidade2 = document.getElementsByClassName("procedureopacity").length;
+
+ 					for (let i=0; i<Quantidade2;i++) {
+					    console.log('indice2' + i);
+						document.getElementsByClassName("procedureopacity")[0].classList.remove("procedureopacity");
+			 		}
+
+					const Quantidade3 = document.getElementsByClassName("linhaopacity").length;
+
+ 					for (let i=0; i<Quantidade3;i++) {
+					    console.log('indice2' + i);
+						document.getElementsByClassName("linhaopacity")[0].classList.remove("linhaopacity");
+			 		}
+
+					console.log('caixaClicada ' + caixaClicada);
+					console.log('identidade[0]' + identidade[0])
+					if (caixaClicada != identidade[0] || caixaClicada=='') {
+						activa(identidade);
+					} else {
+						caixaClicada='';
+					}
+
+				}
+			}
+
+			function tornarOpacto() {
+
+				for (let i=0; i<document.getElementsByClassName("procedure").length;i++) {
+				    // Tornar todas as caixas com opacidade reduzida
+					document.getElementsByClassName("procedure")[i].classList.add("procedureopacity");
+			 	}
+
+				const linhas = document.getElementsByClassName("linha");
+
+				for (let i=0; i<linhas.length;i++) {
+				    // tornar todas as linhas com opacidade reduzida
+					linhas[i].classList.add("linhaopacity");
+			 	}
+			}
+
+			function activa(identidade) {
+				tornarOpacto();
+				const linhas = document.getElementsByClassName("linha");
+				for (let i=0; i<identidade.length;i++) {
+					caixaClicada = document.getElementById(identidade[0]).id;
+					document.getElementById(identidade[i]).classList.add("procedureactivo");
+					document.getElementById(identidade[i]).classList.remove("procedureopacity");
+
+
+					// 	let NumProcedures = 0;
+					// for (let j=0; j<linhas.length;j++) {
+
+					// 	console.log('opacidade linha ' + linhas[j].id);
+
+
+					// 	console.log('linhas[j].id ' + linhas[j].id)
+                    //     console.log('identidade['+i+'] ' +identidade[i])
+
+					// 	if (linhas[j].id.includes(identidade[i])) {
+					// 		if (NumProcedures<1) {
+					// 		   ++NumProcedures;
+					// 		   console.log('NumProcedures ' + NumProcedures)
+					// 		} else {
+					// 			linhas[j].classList.remove("linhaopacity");
+					// 		}
+					// 	}
+					// }
+				}
+				for (let i=0; i<linhas.length;i++) {
+
+					let NumProcedures = 0;
+
+					for (let j=0; j<identidade.length; j++ ) {
+
+						if (linhas[i].id.includes(identidade[j])) {
+							++NumProcedures;
+							if (NumProcedures>1) {
+								linhas[i].classList.remove("linhaopacity");
+							}
+						}
+					}
+  				}
+			}
+			function removetodos() {
+				    console.log('Remove  todos');
+
+				const Quantidade = document.getElementsByClassName("procedureactivo").length;
+
+ 				for (let i=0; i<Quantidade;i++) {
+				    console.log('indice' + i);
+					document.getElementsByClassName("procedureactivo")[0].classList.remove("procedureactivo");
+			 	}
+
+			}
+		</script>
 	</head>
 	<body>
-		<div class=quadro>
+		<div class="quadro">
 		${Listahtml}
 		${Linhashtml}
 		</div>
