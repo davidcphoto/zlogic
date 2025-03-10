@@ -21,7 +21,7 @@ function activate(context) {
 		// The code you place here will be executed every time your command is executed
 
 		// Display a message box to the user
-		vscode.window.showInformationMessage('Começar zLogic!');
+		// vscode.window.showInformationMessage('Começar zLogic!');
 
 		const editor = vscode.window.activeTextEditor;
 
@@ -54,17 +54,7 @@ function activate(context) {
 
 	});
 
-	let disposable2 = vscode.commands.registerCommand('zlogic.toWhere', function () {
-
-	});
-
-	let disposable3 = vscode.commands.registerCommand('zlogic.fromWhere', function () {
-
-	});
-
 	context.subscriptions.push(disposable);
-	context.subscriptions.push(disposable2);
-	context.subscriptions.push(disposable3);
 }
 
 // This method is called when your extension is deactivated
@@ -120,22 +110,28 @@ function TrataProcedureDivision(Programa) {
 						if (Procedures.length > 0) {
 							Procedures[Procedures.length - 1].AdicionarParagrafo(Paragrafo);
 						}
-						Procedures.push(new Procedure(element.slice(1, -1), i));
+						const Nome = element.trim();
+						Procedures.push(new Procedure(Nome.slice(0, -1), i));
 						Paragrafo = '';
 						saiu = false;
 
 					} else {
-						if (element.indexOf(' EXIT') > 0 || (element.indexOf(' STOP') > 0 && element.indexOf(' RUN'))) {
+						if (element.indexOf(' EXIT') > 0 || element.indexOf(' EXIT') > 0 || (element.indexOf(' STOP')  > 0 && element.indexOf(' RUN'))) {
 							saiu = true;
 						}
 						if (!saiu) {
 							Paragrafo += element + fimdelinha;
-							if (element.indexOf('PERFORM') > 0) {
-								const elementSplit = element.split(/[\s,]+/);
+							const elementSplit = element.split(/[\s,]+/);
 
-								if (elementSplit[2] != undefined) {
+							if (elementSplit[1] == "PERFORM" && elementSplit[2] != undefined) {
 									// Evitar ficar undefined por causa de perform varying
 									Filhos.push(elementSplit[2]);
+
+							} else {
+								if (elementSplit[1] == "GO" && elementSplit[2]== "TO" && elementSplit[3] != undefined) {
+									// Evitar ficar undefined por causa de perform varying
+									Filhos.push(elementSplit[3]);
+
 								}
 							}
 						}
@@ -384,7 +380,7 @@ function formataUBL(Lista = []) {
 				seta = `M ${x1 - 1} ${y1 + 1} \\ L ${mx + 1 - 5} ${y1 + 1} \\ L ${mx + 1 - 5} ${y2 + 1} \\ L ${x2 - 5} ${y2 + 1} \\ L ${x2 - 5} ${y2 + 5} \\ L ${x2} ${y2} \\ L ${x2 - 5} ${y2 - 5} \\ L ${x2 - 5} ${y2 - 1} \\ L ${mx - 1 - 5} ${y2 - 1} \\ L ${mx - 1 - 5} ${y1 - 1} \\ L ${x1 - 1} ${y1 - 1} Z`;
 			}
 
-			Linhashtml += `<div id="Linha-${Lista[i].Pais[j] + '-' + Lista[i].Nome}" class="linha" style="left:${PaiX}px; top:${LinhaTOP}px; width:${FilhoX - PaiX}px; height:${LinhaBOTTOM}px; clip-path: path('${seta}')"></div>`;
+			Linhashtml += `<div id="Linha|${Lista[i].Pais[j] + '|' + Lista[i].Nome}" class="linha" style="left:${PaiX}px; top:${LinhaTOP}px; width:${FilhoX - PaiX}px; height:${LinhaBOTTOM}px; clip-path: path('${seta}')"></div>`;
 		}
 	}
 
@@ -416,8 +412,11 @@ function formataUBL(Lista = []) {
 				background-color: var(--vscode-editor-inactiveSelectionBackground);
 		  	}
 
-		  	.procedureopacity, .linhaopacity {
-		 		opacity: 0.1;
+		  	.procedureopacity {
+				opacity: 0.2;
+			 }
+		  	.linhaopacity {
+		 		opacity: 0;
 		  	}
 			.procedure p {
 				position: static;
@@ -538,35 +537,18 @@ function formataUBL(Lista = []) {
 					document.getElementById(identidade[i]).classList.add("procedureactivo");
 					document.getElementById(identidade[i]).classList.remove("procedureopacity");
 
-
-					// 	let NumProcedures = 0;
-					// for (let j=0; j<linhas.length;j++) {
-
-					// 	console.log('opacidade linha ' + linhas[j].id);
-
-
-					// 	console.log('linhas[j].id ' + linhas[j].id)
-                    //     console.log('identidade['+i+'] ' +identidade[i])
-
-					// 	if (linhas[j].id.includes(identidade[i])) {
-					// 		if (NumProcedures<1) {
-					// 		   ++NumProcedures;
-					// 		   console.log('NumProcedures ' + NumProcedures)
-					// 		} else {
-					// 			linhas[j].classList.remove("linhaopacity");
-					// 		}
-					// 	}
-					// }
 				}
 				for (let i=0; i<linhas.length;i++) {
 
 					let NumProcedures = 0;
+					const separados = linhas[i].id.split('|');
 
 					for (let j=0; j<identidade.length; j++ ) {
 
-						if (linhas[i].id.includes(identidade[j])) {
+						if (separados[1]==identidade[j] || separados[2]==identidade[j]) {
 							++NumProcedures;
 							if (NumProcedures>1) {
+								console.log('linhas[ + i + ].id ' + linhas[i].id);
 								linhas[i].classList.remove("linhaopacity");
 							}
 						}
@@ -574,7 +556,8 @@ function formataUBL(Lista = []) {
   				}
 			}
 			function removetodos() {
-				    console.log('Remove  todos');
+
+				console.log('Remove  todos');
 
 				const Quantidade = document.getElementsByClassName("procedureactivo").length;
 

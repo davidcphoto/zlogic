@@ -8,10 +8,9 @@ Reads a cobol programa and preview them as a diagram
 - Preview of the procedure code as a tool tip text.
 - Maintains the procedure order.
 - Click on a procedure to focus on the path to that procedure.
--
 
 
-> Nore: To remove the focus on a procedure it's necessary to click it again.
+> Note: To remove the focus on a procedure it's necessary to click it again.
 
 ## Requirements
 
@@ -23,7 +22,7 @@ n/a
 
 ## Known Issues
 
-- Doesn't recognize goto instructions.
+- Doesn't recognize "go to" instructions.
 - Not called procedure are showed without any predecessor procedures.
 
 ## Release Notes

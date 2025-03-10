@@ -3,6 +3,7 @@
   "displayName": "zLogic",
   "description": "Cobol programs flow - Identify procedure sequence logic",
   "publisher": "DavidCanto",
+  "icon": "zLogic.png",
   "repository": {
     "url": "https://github.com/davidcphoto/zlogic"
   },
@@ -12,9 +13,12 @@
     "David Canto",
     "zos",
     "flow",
-    "zLogic"
+    "zLogic",
+    "diagram",
+    "logic",
+    "paragraph"
   ],
-  "version": "0.0.1",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.96.0"
   },
@@ -28,14 +32,6 @@
       {
         "command": "zlogic.Run",
         "title": "zLogic - Cobol flow"
-      },
-      {
-        "command": "zlogic.toWhere",
-        "title": "zLogic - flow to where"
-      },
-      {
-        "command": "zlogic.fromWhere",
-        "title": "zLogic - flow from where"
       }
     ],
     "menus": {
@@ -45,20 +41,7 @@
           "command": "zlogic.Run",
           "group": "910_zLogic01"
         }
-      ],
-
-    "webview/context": [
-        {
-        "when": "webviewId == 'zLogic'",
-          "command": "zlogic.toWhere",
-          "group": "910_zLogic02"
-        },
-        {
-        "when": "webviewId == 'zLogic' && webviewSection == 'procedure'",
-          "command": "zlogic.fromWhere",
-          "group": "910_zLogic03"
-        }
-    ]
+      ]
     }
   },
   "scripts": {
